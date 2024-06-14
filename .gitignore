@@ -1,0 +1,12 @@
+__pycache__/tetrisView.cpython-312.pyc
+.idea/.gitignore
+.idea/misc.xml
+.idea/modules.xml
+.idea/tetris.iml
+.idea/vcs.xml
+.idea/inspectionProfiles/profiles_settings.xml
+__pycache__/tetrisController.cpython-311.pyc
+__pycache__/tetrisController.cpython-312.pyc
+__pycache__/tetrisModel.cpython-311.pyc
+__pycache__/tetrisModel.cpython-312.pyc
+__pycache__/tetrisView.cpython-311.pyc
