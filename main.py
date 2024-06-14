@@ -13,12 +13,13 @@ playAreaRows = 21
 #maint window
 root = tk.Tk()
 root.title('Tetris')
-root.configure(padx=2, pady=2)
+background = 'DarkOrange4'
+root.configure(padx=5, pady=5, background=background)
 
 
 #view
 model = TetrisModel(playAreaRows, playAreaColumns)
-view = TetrisView(root, controller=None, model=model, blockSize=blockSize, rows=playAreaRows, columns=playAreaColumns)
+view = TetrisView(root, controller=None, model=model, blockSize=blockSize, rows=playAreaRows, columns=playAreaColumns, background=background)
 controller = TetrisController(root, model, view)
 view.controller = controller
 

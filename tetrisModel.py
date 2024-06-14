@@ -104,6 +104,7 @@ class TetrisModel:
         self.completeRows = []
         self.nextObject = Object(shape=self.getRandomObject())
         self.gameOver = False
+        self.score = 0
 
     def tick(self):
         if self.gameOver:
@@ -231,4 +232,5 @@ class TetrisModel:
         for r in self.completeRows:
             del(self.playArea[r])
             self.playArea.insert(0,[None for item in range(0,self.columns)])
+        self.score += len(self.completeRows)**2
 

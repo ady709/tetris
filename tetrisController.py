@@ -3,6 +3,7 @@ class TetrisController:
         self.root = root
         self.model = model
         self.view = view
+        self.root.after(500, self.tick)
 
     def keyInput(self,event):
         if event.keysym == 'Down':
@@ -14,3 +15,10 @@ class TetrisController:
         elif event.keysym == 'Up':
             self.model.rotate()
         self.view.updateView()
+
+    def tick(self):
+        print('ctl.tick')
+        self.model.tick()
+        self.view.updateView()
+        self.root.after(300, self.tick)
+
