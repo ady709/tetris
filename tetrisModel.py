@@ -98,13 +98,21 @@ class TetrisModel:
     def __init__(self, rows, columns):
         self.rows = rows
         self.columns = columns
-        self.playArea = [[None for i in range(0, columns)] for o in range(0, rows)]
+        self.init()
+
+    def init(self):
+        self.playArea = [[None for i in range(0, self.columns)] for o in range(0, self.rows)]
         self.addObject = True
         self.landed = False
         self.completeRows = []
         self.nextObject = Object(shape=self.getRandomObject())
         self.gameOver = False
         self.score = 0
+        self.level = 1
+        self.beginTimer = 500
+        self.timer = self.beginTimer
+        self.removedRows = 0
+
 
     def tick(self):
         if self.gameOver:
@@ -147,6 +155,12 @@ class TetrisModel:
         #fall the object down
         if not self.landed and not self.addObject:
             self.object.r += 1
+
+        #check level
+        self.level = int(self.removedRows/30)+1
+        self.timer = self.beginTimer - (self.level-1) * 50
+        if self.timer < 50: self.timer = 50
+
     #end of tick
 
     def goLeft(self):
@@ -233,4 +247,5 @@ class TetrisModel:
             del(self.playArea[r])
             self.playArea.insert(0,[None for item in range(0,self.columns)])
         self.score += len(self.completeRows)**2
+        self.removedRows += len(self.completeRows)
 
