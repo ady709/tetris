@@ -3,6 +3,7 @@ from tkinter import ttk
 
 
 class TetrisView:
+
     def __init__(self,root,controller,model, blockSize, rows, columns, background):
         self.root = root
         self.root.bind("<KeyPress>", self.keyInput)
@@ -12,52 +13,69 @@ class TetrisView:
         self.canH = blockSize*rows
         self.canW = blockSize*columns
         self.background = background
+        self.combos = {1:'Single', 2:'Doubles', 3:'Tripples', 4:'Tetris'}
 
-        #score
-        ttk.Label(text='Score:', font=('Arial',16), background=self.background).grid(row=0,column=0, sticky='e')
-        self.score = ttk.Label(font=('Arial',16), background=self.background, text='0')
+        # root.columnconfigure(0, weight=2)
+        # root.columnconfigure(1, weight=2)
+        # root.columnconfigure(3, weight=2)
+        # root.columnconfigure(4, weight=2)
+        # root.columnconfigure(5, weight=1)
+        # root.columnconfigure(6, weight=1)
+
+        #column 0-4 : play area
+        #score colum 0-1
+        ttk.Label(root, text='Score:', font=('Arial', 16), background=self.background).grid(row=0, column=0, sticky='e')
+        self.score = ttk.Label(root, font=('Arial', 16), background=self.background, text='0')
         self.score.grid(row=0, column=1, sticky='w')
-        #level
-        ttk.Label(text='Level:', font=('Arial', 16), background=self.background).grid(row=0, column=2, sticky='e')
-        self.level = ttk.Label(font=('Arial', 16), background=self.background)
+        #level column 2-3
+        ttk.Label(root, text='Level:', font=('Arial', 16), background=self.background).grid(row=0, column=2, sticky='e')
+        self.level = ttk.Label(root, font=('Arial', 16), background=self.background)
         self.level.grid(row=0, column=3, sticky='w')
-
-        #playArea
+        #playArea column 0-3
         self.frame = tk.Frame(root, borderwidth=8, relief='ridge', background=self.background)
-        self.frame.grid(row=1, column=0, rowspan=8, columnspan=4)
-
-        self.can = tk.Canvas(self.frame, width=self.canW + 1, height=self.canH + 1, background='darkgrey', borderwidth=0, relief='ridge')
+        self.frame.grid(row=1, column=0, columnspan=4, rowspan=30)
+        self.can = tk.Canvas(self.frame, width=self.canW + 1, height=self.canH + 1, background='darkgrey',
+                             borderwidth=0, relief='ridge')
         self.can.config(highlightthickness=0)
         self.can.pack()
         self.can.config(scrollregion=(0, 0, self.canW, self.canH))
 
-        #separator
-        ttk.Label(root,text='', width=1, background=self.background).grid(row=0, column=4)
+        #column 4 : separator
+        ttk.Label(root, text='', width=1, background=self.background).grid(row=0, column=4)
 
-        #nextPiece
-        ttk.Label(root, background=self.background, width=5, font=('Arial',12), text='Next:').grid(row=0, column=5)
+        #column 5-6 : next piece and information
+        #nextPiece text
+        ttk.Label(root, background=self.background, width=5, font=('Arial',12), text='Next:').grid(row=0, column=5, columnspan=2)
+        # nextPiece graphics
         self.frameNext = tk.Frame(root, borderwidth=4, relief='ridge', background=self.background)
-        self.frameNext.grid(row=1, column=5, sticky='n')
-        self.canNextBlockSize = 5
-        self.canNextW = self.canNextH = self.blockSize*self.canNextBlockSize
+        self.frameNext.grid(row=1, column=5, columnspan=2, sticky='n')
+        self.canNextBlockSize = 10
+        self.canNextW = self.canNextH = self.canNextBlockSize * 5
         self.canNext = tk.Canvas(self.frameNext, width=self.canNextW, height=self.canNextH, background='grey25', highlightthickness=0)
         self.canNext.pack()
         self.canNext.config(scrollregion=(0, 0, self.canNextW, self.canNextH))
+        #combos
+        self.comboLabel = dict()
+        for i,txt in enumerate(self.combos):
+            ttk.Label(root, text=self.combos[i+1], background=self.background, width=8, font=('Arial', 10)).grid(row=3+i, column=5)
+            cb = tk.Label(text='0', background=self.background, width=4, font=('Arial',10))
+            cb.grid(row=3+i, column=6)
+            self.comboLabel.setdefault(i+1, cb)
 
         #button
-        self.button = tk.Button(root,text='Start', command=self.button)
-        self.button.grid(row=2, column=5, sticky='n')
+        self.button = tk.Button(root, text='Start', command=self.button, width=9)
+        self.button.grid(row=20, column=5, sticky='n', columnspan=2)
+
 
     def updateView(self):
-        def drawObject(obj, canv, xadd=0, yadd=0):
+        def drawObject(obj, canv, blockSize, xadd=0, yadd=0):
             for y in range(0,len(obj.cmap)):
                 for x in range(0,len(obj.cmap[y])):
-                    xpos = (obj.c+xadd)*self.blockSize+x*self.blockSize
-                    ypos = (obj.r+yadd) * self.blockSize+y*self.blockSize
+                    xpos = (obj.c+xadd) * blockSize+x*blockSize
+                    ypos = (obj.r+yadd) * blockSize+y*blockSize
                     blockColor = obj.cmap[y][x]
                     if blockColor:
-                        canv.create_rectangle(xpos, ypos, xpos + self.blockSize, ypos + self.blockSize,
-                                                  fill=blockColor)
+                        canv.create_rectangle(xpos, ypos, xpos + blockSize, ypos + blockSize, fill=blockColor)
 
         #clear all shapes
         for item in self.can.find_all():
@@ -70,18 +88,21 @@ class TetrisView:
                     ypos = y*self.blockSize
                     self.can.create_rectangle(xpos, ypos, xpos+self.blockSize, ypos+self.blockSize, fill=color)
         #draw played object
-        drawObject(self.model.object, self.can)
+        drawObject(self.model.object, self.can, self.blockSize)
         #draw next object
         for item in self.canNext.find_all():
             self.canNext.delete(item)
-        drawObject(self.model.nextObject, self.canNext,
-                   xadd=int(self.canNextBlockSize/2) - int(self.model.nextObject.width/2),
-                   yadd=int(self.canNextBlockSize/2) - int(self.model.nextObject.height/2))
+        drawObject(self.model.nextObject, self.canNext, self.canNextBlockSize,
+                   xadd=int(self.canNextW/self.canNextBlockSize/2) - int(self.model.nextObject.width/2),
+                   yadd=int(self.canNextH/self.canNextBlockSize/2) - int(self.model.nextObject.height/2))
 
         #print score
         self.score.configure(text=self.model.score)
         #print level
         self.level.configure(text=self.model.level)
+        #print combos
+        for k,v in self.model.combos.items():
+            self.comboLabel[k].configure(text=v)
 
     #game over
     def gameOver(self):

@@ -112,6 +112,7 @@ class TetrisModel:
         self.beginTimer = 500
         self.timer = self.beginTimer
         self.removedRows = 0
+        self.combos = {1:0, 2:0, 3:0, 4:0}
 
 
     def tick(self):
@@ -248,4 +249,5 @@ class TetrisModel:
             self.playArea.insert(0,[None for item in range(0,self.columns)])
         self.score += len(self.completeRows)**2
         self.removedRows += len(self.completeRows)
+        self.combos[len(self.completeRows)] += 1
 

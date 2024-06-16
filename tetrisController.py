@@ -10,15 +10,16 @@ class TetrisController:
             
 
     def keyInput(self,event):
-        if event.keysym == 'Down':
-            self.model.tick()
-        elif event.keysym == 'Left':
-            self.model.goLeft()
-        elif event.keysym == 'Right':
-            self.model.goRight()
-        elif event.keysym == 'Up':
-            self.model.rotate()
-        self.view.updateView()
+        if self.gameStatus=='running':
+            if event.keysym == 'Down':
+                self.model.tick()
+            elif event.keysym == 'Left':
+                self.model.goLeft()
+            elif event.keysym == 'Right':
+                self.model.goRight()
+            elif event.keysym == 'Up':
+                self.model.rotate()
+            self.view.updateView()
 
     def tick(self):
         if not self.gameStatus == 'running':
