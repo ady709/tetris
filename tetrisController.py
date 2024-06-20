@@ -1,5 +1,8 @@
 import csv
 import tkinter as tk
+
+import os
+
 class TetrisController:
     def __init__(self, root, model, view):
         self.gameStatus = 'stopped'
@@ -7,8 +10,11 @@ class TetrisController:
         self.model = model
         self.view = view
         self.root.after(self.model.timer, self.tick)
+        #cwd = os.getcwd()
+        self.cwd=os.path.dirname(os.path.realpath(__file__))
         self.loadScore()
         self.sortScore()
+
 
 
             
@@ -62,12 +68,12 @@ class TetrisController:
 
     def loadScore(self):
         try:
-            with open('scores.csv','r') as file:
+            with open(self.cwd+'/scores.csv','r') as file:
                 reader = csv.DictReader(file, delimiter=';')
                 self.highScore = list(reader)
         except:
             self.highScore = list()
-
+        
     def sortScore(self):
         sortedScore = list()
         while(len(self.highScore)):
@@ -102,22 +108,24 @@ class TetrisController:
                 self.gameStatus = 'stopped'
                 self.view.button.configure(state=tk.NORMAL)
 
-        if len(self.highScore)==0 or self.model.score > int(self.highScore[-1]['score']):
+        if len(self.highScore)==0 or self.model.score > int(self.highScore[-1]['score']) and self.model.score>0:
             self.gameStatus='frozen'
             self.view.button.configure(state=tk.DISABLED)
             nameWindow = tk.Tk()
+            nameWindow.eval('tk::PlaceWindow . center')
             nameWindow.configure(padx=30, pady=10)
             nameWindow.title('Enter Name')
             tk.Label(nameWindow, text='Enter your name').grid(row=0,column=0)
             entry = tk.Entry(nameWindow, width=20)
             entry.grid(row=1, column=0, columnspan=4)
+            nameWindow.focus_set()
             entry.focus_set()
             entry.bind('<KeyPress>', lambda x: getName() if x.keysym=='Return' else  None)
             tk.Button(nameWindow,text='OK', command=getName, width=4).grid(row=2, column=2)
             nameWindow.protocol("WM_DELETE_WINDOW", getName)
 
     def saveHighScore(self):
-        with open('scores.csv','w') as file:
+        with open(self.cwd+'/scores.csv','w') as file:
             file.write('name;score;level;singles;doubles;tripples;teris\n')
             for record in self.highScore:
                 for k,v in record.items():

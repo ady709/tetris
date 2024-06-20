@@ -12,6 +12,7 @@ playAreaRows = 21
 
 #maint window
 root = tk.Tk()
+root.eval('tk::PlaceWindow . center')
 root.title('Tetris')
 background = 'DarkOrange4'
 root.configure(padx=5, pady=5, background=background)
