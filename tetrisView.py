@@ -145,7 +145,7 @@ class TetrisView:
             return
         self.selectedScorePos = event.widget
         event.widget.configure(background='IndianRed1')
-        print(f'{self.selectedScorePos.cget('text')} selected')
+        print(f"{self.selectedScorePos.cget('text')} selected")
 
     def addHighScores(self):
         for r in self.highScoreLabels:
