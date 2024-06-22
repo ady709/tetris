@@ -13,7 +13,7 @@ class TetrisController:
         #cwd = os.getcwd()
         self.cwd=os.path.dirname(os.path.realpath(__file__))
         self.loadScore()
-        self.sortScore()
+        self.randomSeed = None
 
 
 
@@ -54,7 +54,15 @@ class TetrisController:
 
     def button(self):
         if self.gameStatus=='stopped':
-            self.model.init()
+            try:
+                print(f'Challenging {self.view.selectedScorePos.cget('text')}')
+                seedPos = int(self.view.selectedScorePos.cget('text'))-1 \
+                    if isinstance(self.view.selectedScorePos, tk.Label)\
+                    else None
+                self.randomSeed = int(self.highScore[seedPos]['seed'])
+            except:
+                self.randomSeed = None
+            self.model.init(self.randomSeed)
             self.view.button.configure(text='Pause')
             self.gameStatus = 'running'
             self.tick()
@@ -71,6 +79,8 @@ class TetrisController:
             with open(self.cwd+'/scores.csv','r') as file:
                 reader = csv.DictReader(file, delimiter=';')
                 self.highScore = list(reader)
+                self.sortScore()
+                if len(self.highScore)>10: self.highScore = self.highScore[:10]
         except:
             self.highScore = list()
         
@@ -95,7 +105,8 @@ class TetrisController:
             if len(name):
                 newrecord = {'name': name, 'score': self.model.score, 'level': self.model.level,
                              'singles': self.model.combos[1], 'doubles': self.model.combos[2],
-                             'tripples': self.model.combos[3], 'tetris': self.model.combos[4]}
+                             'tripples': self.model.combos[3], 'tetris': self.model.combos[4],
+                             'seed': self.model.randomSeed}
                 nameWindow.destroy()
                 if len(self.highScore)<10:
                     self.highScore.append(newrecord)
@@ -107,6 +118,7 @@ class TetrisController:
                 self.saveHighScore()
                 self.gameStatus = 'stopped'
                 self.view.button.configure(state=tk.NORMAL)
+                print(newrecord)
 
         if len(self.highScore)==0 or self.model.score > int(self.highScore[-1]['score']) and self.model.score>0:
             self.gameStatus='frozen'
@@ -126,10 +138,21 @@ class TetrisController:
 
     def saveHighScore(self):
         with open(self.cwd+'/scores.csv','w') as file:
-            file.write('name;score;level;singles;doubles;tripples;teris\n')
-            for record in self.highScore:
-                for k,v in record.items():
-                    file.write(str(v))
-                    if k!='tetris':
-                        file.write(';')
+            savelist = ['name','score','level','singles','doubles','tripples','tetris','seed']
+            header = ';'.join(savelist)
+            file.write(header)
+            file.write('\n')
+            for row in self.highScore:
+                record = [str(row[item]) for item in savelist]
+                saverow = ';'.join(record)
+                file.write(saverow)
                 file.write('\n')
+
+    def setRandomSeed(self, posNr):
+        print(posNr)
+        print(self.highScore)
+        try:
+            self.randomSeed = int(self.highScore[int(posNr)-1]['seed'])
+        except:
+            self.view.selectedScorePos = None
+            print(self.highScore[int(posNr)-1]['seed'])

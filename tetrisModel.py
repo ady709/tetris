@@ -1,6 +1,6 @@
 import random
 from datetime import datetime
-random.seed(datetime.now().microsecond)
+
 
 #objects: tri, square, i, s, rs, l, j
 
@@ -96,16 +96,16 @@ class TetrisModel:
     shapes = {0:'tri', 1:'square', 2:'i', 3:'s', 4:'rs', 5:'l', 6:'j'}
 
     def __init__(self, rows, columns):
+        self.randomSeed = None
         self.rows = rows
         self.columns = columns
         self.init()
 
-    def init(self):
+    def init(self, randomSeed=None):
         self.playArea = [[None for i in range(0, self.columns)] for o in range(0, self.rows)]
         self.addObject = True
         self.landed = False
         self.completeRows = []
-        self.nextObject = Object(shape=self.getRandomObject())
         self.gameOver = False
         self.score = 0
         self.level = 1
@@ -113,6 +113,16 @@ class TetrisModel:
         self.timer = self.beginTimer
         self.removedRows = 0
         self.combos = {1:0, 2:0, 3:0, 4:0}
+        self.randomSeed = 123
+        if not randomSeed is None and type(randomSeed) == int:
+            self.randomSeed = randomSeed
+            print('seed loaded')
+        else:
+            self.randomSeed = datetime.now().microsecond
+        random.seed(self.randomSeed)
+        print(f'Starting with seed {self.randomSeed}')
+        self.nextObject = Object(shape=self.getRandomObject())
+
 
 
     def tick(self):

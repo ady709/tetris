@@ -14,6 +14,7 @@ class TetrisView:
         self.canW = blockSize*columns
         self.background = background
         self.combos = {1:'Singles', 2:'Doubles', 3:'Tripples', 4:'Tetris'}
+        self.selectedScorePos = None
 
         # root.columnconfigure(0, weight=2)
         # root.columnconfigure(1, weight=2)
@@ -116,28 +117,55 @@ class TetrisView:
     def gameOver(self):
         self.can.create_text((self.canW/2,self.canH/2), text='Game Over', font=('Arial',28), anchor="center", fill='black')
 
+
     def keyInput(self,event):
         self.controller.keyInput(event)
 
     def button(self):
         self.controller.button()
 
+    def on_score_pos_label_entered(self, event):
+        if self.controller.gameStatus != 'stopped' or event.widget is self.selectedScorePos:
+            return
+        event.widget.configure(background='tan1')
+    def on_score_pos_label_left(self, event):
+        if not event.widget is self.selectedScorePos:
+            event.widget.configure(background=self.root.cget('background'))
+
+    def clear_pos_label(self):
+        for label in self.highScoreLabels:
+            label['pos'].configure(background = self.root.cget('background'))
+
+    def on_score_pos_label_click(self,event):
+        if self.controller.gameStatus != 'stopped':
+            return
+        self.clear_pos_label()
+        if self.selectedScorePos is event.widget:
+            self.selectedScorePos = None
+            return
+        self.selectedScorePos = event.widget
+        event.widget.configure(background='IndianRed1')
+        print(f'{self.selectedScorePos.cget('text')} selected')
+
     def addHighScores(self):
         for r in self.highScoreLabels:
-            for l in r:
+            for l in r.values():
                 l.destroy()
-
+        self.selectedScorePos = None
         self.highScoreLabels = list()
         for i,s in enumerate(self.controller.highScore):
-            r=list()
+            r=dict()
             pos = tk.Label(text=str(i+1), font=('Arial',10), background=self.background ,width=2)
             pos.grid(row=self.highScoreRow+1+i, column=5, sticky='e')
-            r.append(pos)
+            pos.bind('<Enter>', self.on_score_pos_label_entered)
+            pos.bind('<Leave>', self.on_score_pos_label_left)
+            pos.bind('<ButtonPress-1>', self.on_score_pos_label_click)
+            r['pos'] = pos
             name = tk.Label(text=s['name'], font=('Arial',10), background=self.background, width=10)
             name.grid(row=self.highScoreRow+1+i, column=6, columnspan=10, sticky='w')
-            r.append(name)
+            r['name'] = name
             score = tk.Label(text=s['score'], font=('Arial',10), background=self.background, width=10)
             score.grid(row=self.highScoreRow+1+i, column=17, columnspan=9, sticky='w')
-            r.append(score)
+            r['score'] = score
             self.highScoreLabels.append(r)
 #end class
