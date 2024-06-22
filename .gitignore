@@ -10,3 +10,4 @@ __pycache__/tetrisController.cpython-312.pyc
 __pycache__/tetrisModel.cpython-311.pyc
 __pycache__/tetrisModel.cpython-312.pyc
 __pycache__/tetrisView.cpython-311.pyc
+scores.csv

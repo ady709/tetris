@@ -55,7 +55,7 @@ class TetrisController:
     def button(self):
         if self.gameStatus=='stopped':
             try:
-                print(f'Challenging {self.view.selectedScorePos.cget('text')}')
+                print(f"Challenging {self.view.selectedScorePos.cget('text')}")
                 seedPos = int(self.view.selectedScorePos.cget('text'))-1 \
                     if isinstance(self.view.selectedScorePos, tk.Label)\
                     else None
