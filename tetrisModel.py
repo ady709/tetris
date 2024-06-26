@@ -172,7 +172,7 @@ class TetrisModel:
             if self.landed and not 'rowsCompleted' in self.status and self.object.r == 0:
                 self.gameOver = True
                 self.status.append('gameOver')
-
+            #return if landed
             return self.status
 
         # fall
