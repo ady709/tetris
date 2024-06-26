@@ -17,6 +17,7 @@ class TetrisController:
 
 
 
+
             
 
     def keyInput(self,event):
@@ -26,49 +27,77 @@ class TetrisController:
             self.button()
         if self.gameStatus=='running':
             if event.keysym == 'Down':
-                self.model.tick()
+                self.tick(scheduleNextTick = False)
             elif event.keysym == 'Left':
                 self.model.goLeft()
             elif event.keysym == 'Right':
                 self.model.goRight()
             elif event.keysym == 'Up':
                 self.model.rotate()
-            self.view.updateView()
+            #self.view.updateView()
+            self.view.drawObject1(self.model.object, self.view.can, self.view.blockSize)
 
 
 
-
-    def tick(self):
+    def tick(self, scheduleNextTick = True):
         if not self.gameStatus == 'running':
             return
+
         self.model.tick()
-        self.view.updateView()
+        #always draw object
+        self.view.drawObject1(self.model.object, self.view.can, self.view.blockSize)
+        #draw playarea when landed
+        if 'landed' in self.model.status:
+            self.view.drawPlayArea()
+        #update infos when needed
+        if 'rowsCompleted' in self.model.status:
+            self.view.updateScore()
+        if 'levelChanged' in self.model.status:
+            self.view.updateLevel()
+
         #check for game over
         if self.model.gameOver:
             self.gameStatus = 'stopped'
             self.view.gameOver()
             self.view.button.configure(text='Start')
             self.checkHighScore()
-        else:
+
+        if 'objectAdded' in self.model.status:
+            self.view.drawObject1(self.model.nextObject, self.view.canNext, self.view.canNextBlockSize,
+                       xadd=int(self.view.canNextW / self.view.canNextBlockSize / 2) - int(self.model.nextObject.width / 2),
+                       yadd=int(self.view.canNextH / self.view.canNextBlockSize / 2) - int(self.model.nextObject.height / 2))
+
+        if 'landed' in self.model.status:
+            self.tick(False)
+
+        if self.gameStatus == 'running' and scheduleNextTick:
             self.root.after(self.model.timer, self.tick)
 
+    #end tick
+
     def button(self):
+        #start new game
         if self.gameStatus=='stopped':
             try:
-                print(f"Challenging {self.view.selectedScorePos.cget('text')}")
                 seedPos = int(self.view.selectedScorePos.cget('text'))-1 \
                     if isinstance(self.view.selectedScorePos, tk.Label)\
                     else None
                 self.randomSeed = int(self.highScore[seedPos]['seed'])
+                print(f"Challenging {self.view.selectedScorePos.cget('text')}")
             except:
                 self.randomSeed = None
             self.model.init(self.randomSeed)
+            self.view.clearPlayArea()
+            self.view.updateScore()
+            self.view.updateLevel()
             self.view.button.configure(text='Pause')
             self.gameStatus = 'running'
             self.tick()
+        #pause game
         elif self.gameStatus == 'running':
             self.view.button.configure(text='Continue')
             self.gameStatus = 'paused'
+        #continue game
         elif self.gameStatus == 'paused':
             self.view.button.configure(text='Pause')
             self.gameStatus = 'running'

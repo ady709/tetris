@@ -15,6 +15,9 @@ class TetrisView:
         self.background = background
         self.combos = {1:'Singles', 2:'Doubles', 3:'Tripples', 4:'Tetris'}
         self.selectedScorePos = None
+        self.playedobjectblocks = list()
+        self.viewarea = list()
+        self.playedobjectblocks = list()
 
         # root.columnconfigure(0, weight=2)
         # root.columnconfigure(1, weight=2)
@@ -105,13 +108,62 @@ class TetrisView:
                    xadd=int(self.canNextW/self.canNextBlockSize/2) - int(self.model.nextObject.width/2),
                    yadd=int(self.canNextH/self.canNextBlockSize/2) - int(self.model.nextObject.height/2))
 
+
+
+
+    def updateScore(self):
         #print score
         self.score.configure(text=self.model.score)
-        #print level
-        self.level.configure(text=self.model.level)
         #print combos
         for k,v in self.model.combos.items():
             self.comboLabel[k].configure(text=v)
+    def updateLevel(self):
+        #print level
+        self.level.configure(text=self.model.level)
+
+
+    def drawPlayArea(self):
+        #clear existing blocks
+        for r in self.viewarea:
+            for b in r:
+                self.can.delete(b)
+        #draw new playarea
+        self.viewarea = list()
+        for y,modelrow in enumerate(self.model.playArea):
+            viewrow = list()
+            for x,color in enumerate(modelrow):
+                if color:
+                    xpos = x*self.blockSize
+                    ypos = y*self.blockSize
+                    a = self.can.create_rectangle(xpos, ypos, xpos+self.blockSize, ypos+self.blockSize, fill=color)
+                    viewrow.append(a)
+            self.viewarea.append(viewrow)
+
+    def drawObject1(self, obj, canv, blockSize, xadd=0, yadd=0):
+        #clear current
+        if canv is self.can:
+            for b in self.playedobjectblocks:
+                self.can.delete(b)
+            self.playedobjectblocks = []
+
+        if canv is self.canNext:
+            for b in self.canNext.find_all():
+                self.canNext.delete(b)
+        #draw new
+        for y in range(0, len(obj.cmap)):
+            for x in range(0, len(obj.cmap[y])):
+                xpos = (obj.c + xadd) * blockSize + x * blockSize
+                ypos = (obj.r + yadd) * blockSize + y * blockSize
+                blockColor = obj.cmap[y][x]
+                if blockColor:
+                    a = canv.create_rectangle(xpos, ypos, xpos + blockSize, ypos + blockSize, fill=blockColor)
+                    if canv is self.can:
+                        self.playedobjectblocks.append(a)
+
+
+    def clearPlayArea(self):
+        for item in self.can.find_all():
+            self.can.delete(item)
 
     #game over
     def gameOver(self):

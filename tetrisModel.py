@@ -122,55 +122,62 @@ class TetrisModel:
         random.seed(self.randomSeed)
         print(f'Starting with seed {self.randomSeed}')
         self.nextObject = Object(shape=self.getRandomObject())
-
+        self.status = []
 
 
     def tick(self):
+        self.status = []
+        #do not tick if gameOver
         if self.gameOver:
-            return
+            return self.status
+
+        #add object if needed
         if self.addObject:
-            #add new object if needed
             self.object = Object(shape=self.nextObject.cmap, r=0, c=int(self.columns / 2))
             self.nextObject = Object(shape=self.getRandomObject())
+            self.status.append('objectAdded')
             self.addObject = False
-            #check for game over
-            gameOver=False
-            for y,row in enumerate(self.object.cmap):
-                for x,block in enumerate(row):
-                    if self.object.cmap[y][x] and self.playArea[self.object.r+y][self.object.c+x]:
-                        gameOver = True
-                        break
-                    if gameOver:
-                        break
-            if gameOver:
-                self.gameOver = True
-            return
+            return self.status
 
-        #see if the objact has landed
+
+        # check if landed
+        self.landed = False
         for x, y in enumerate(self.object.bottom):
-            if not y is None:
+            if y is not None:
                 if self.object.r + y == self.rows - 1 or self.playArea[self.object.r + y + 1][self.object.c + x]:
                     self.landed = True
+                    self.addObject = True
 
         if self.landed:
+            # copy object to playArea
             for y, row in enumerate(self.object.cmap):
                 for x, block in enumerate(row):
                     if block:
                         self.playArea[self.object.r + y][self.object.c + x] = block
-            self.addObject = True
-            self.landed = False
+            self.status.append('landed')
+            # check complete rows
             self.checkCompleteRows()
-            self.removeCompleteRows()
-            self.tick()
+            if len(self.completeRows):
+                self.status.append('rowsCompleted')
+                self.removeCompleteRows()
 
-        #fall the object down
-        if not self.landed and not self.addObject:
-            self.object.r += 1
+            # check level
+            level = int(self.removedRows / 30) + 1
+            if level != self.level:
+                self.timer = self.beginTimer - (self.level - 1) * 50
+                if self.timer < 50: self.timer = 50
+                self.status.append('levelChanged')
 
-        #check level
-        self.level = int(self.removedRows/30)+1
-        self.timer = self.beginTimer - (self.level-1) * 50
-        if self.timer < 50: self.timer = 50
+            #if new object and landed  and no complete rows -> gameover
+            if self.landed and not 'rowsCompleted' in self.status and self.object.r == 0:
+                self.gameOver = True
+                self.status.append('gameOver')
+
+            return self.status
+
+        # fall
+        self.object.r += 1
+
 
     #end of tick
 
