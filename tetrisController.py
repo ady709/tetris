@@ -44,8 +44,9 @@ class TetrisController:
             return
 
         self.model.tick()
-        #always draw object
-        self.view.drawObject1(self.model.object, self.view.can, self.view.blockSize)
+        #draw object
+        if not 'landed'in self.model.status:
+	        self.view.drawObject1(self.model.object, self.view.can, self.view.blockSize)
         #draw playarea when landed
         if 'landed' in self.model.status:
             self.view.drawPlayArea()
@@ -68,7 +69,7 @@ class TetrisController:
                        yadd=int(self.view.canNextH / self.view.canNextBlockSize / 2) - int(self.model.nextObject.height / 2))
 
         if 'landed' in self.model.status:
-            self.tick(False)
+            self.tick(False) #tick without schedulling next tick to avoid delay before next piece appears
 
         if self.gameStatus == 'running' and scheduleNextTick:
             self.root.after(self.model.timer, self.tick)
