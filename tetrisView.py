@@ -79,34 +79,6 @@ class TetrisView:
         self.button.grid(row=21, column=startcolumn, sticky='n', columnspan=length)
 
 
-    def updateView(self):
-        def drawObject(obj, canv, blockSize, xadd=0, yadd=0):
-            for y in range(0,len(obj.cmap)):
-                for x in range(0,len(obj.cmap[y])):
-                    xpos = (obj.c+xadd) * blockSize+x*blockSize
-                    ypos = (obj.r+yadd) * blockSize+y*blockSize
-                    blockColor = obj.cmap[y][x]
-                    if blockColor:
-                        canv.create_rectangle(xpos, ypos, xpos + blockSize, ypos + blockSize, fill=blockColor)
-
-        #clear all shapes
-        for item in self.can.find_all():
-            self.can.delete(item)
-        #draw playfield
-        for y,row in enumerate(self.model.playArea):
-            for x,color in enumerate(row):
-                if color:
-                    xpos = x*self.blockSize
-                    ypos = y*self.blockSize
-                    self.can.create_rectangle(xpos, ypos, xpos+self.blockSize, ypos+self.blockSize, fill=color)
-        #draw played object
-        drawObject(self.model.object, self.can, self.blockSize)
-        #draw next object
-        for item in self.canNext.find_all():
-            self.canNext.delete(item)
-        drawObject(self.model.nextObject, self.canNext, self.canNextBlockSize,
-                   xadd=int(self.canNextW/self.canNextBlockSize/2) - int(self.model.nextObject.width/2),
-                   yadd=int(self.canNextH/self.canNextBlockSize/2) - int(self.model.nextObject.height/2))
 
 
 
@@ -139,12 +111,15 @@ class TetrisView:
                     viewrow.append(a)
             self.viewarea.append(viewrow)
 
+    def clearPlayAreaObject(self):
+        for b in self.playedobjectblocks:
+            self.can.delete(b)
+        self.playedobjectblocks = []
+
     def drawObject1(self, obj, canv, blockSize, xadd=0, yadd=0):
         #clear current
         if canv is self.can:
-            for b in self.playedobjectblocks:
-                self.can.delete(b)
-            self.playedobjectblocks = []
+            self.clearPlayAreaObject()
 
         if canv is self.canNext:
             for b in self.canNext.find_all():
@@ -220,4 +195,15 @@ class TetrisView:
             score.grid(row=self.highScoreRow+1+i, column=17, columnspan=9, sticky='w')
             r['score'] = score
             self.highScoreLabels.append(r)
+
+
+
+
+    def animateCompleteRows(self, color):
+        for r in self.model.completeRows:
+            for block in self.viewarea[r]:
+                self.can.itemconfig(block, fill=color)
+
+
+
 #end class

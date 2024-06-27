@@ -1,9 +1,11 @@
 import csv
 import tkinter as tk
+import animation
 
 import os
 
 class TetrisController:
+    #TODO: avoid double schedulling of tick on pause/unpause
     def __init__(self, root, model, view):
         self.gameStatus = 'stopped'
         self.root = root
@@ -14,6 +16,7 @@ class TetrisController:
         self.cwd=os.path.dirname(os.path.realpath(__file__))
         self.loadScore()
         self.randomSeed = None
+        self.cancelNextTick = False
 
 
 
@@ -40,16 +43,22 @@ class TetrisController:
 
 
     def tick(self, scheduleNextTick = True):
-        if not self.gameStatus == 'running':
+        if not self.gameStatus == 'running' or self.cancelNextTick:
+            self.cancelNextTick = False
             return
 
         self.model.tick()
         #draw object
-        if not 'landed'in self.model.status:
+        if not 'landed' in self.model.status:#\
+                #and not 'rowsCompleted' in self.model.status:
 	        self.view.drawObject1(self.model.object, self.view.can, self.view.blockSize)
         #draw playarea when landed
         if 'landed' in self.model.status:
             self.view.drawPlayArea()
+            self.view.clearPlayAreaObject()
+        #Animate complete rows
+            if 'rowsCompleted' in self.model.status:
+                self.animation = animation.Animation(self)
         #update infos when needed
         if 'rowsCompleted' in self.model.status:
             self.view.updateScore()
@@ -68,13 +77,16 @@ class TetrisController:
                        xadd=int(self.view.canNextW / self.view.canNextBlockSize / 2) - int(self.model.nextObject.width / 2),
                        yadd=int(self.view.canNextH / self.view.canNextBlockSize / 2) - int(self.model.nextObject.height / 2))
 
-        if 'landed' in self.model.status:
+        if 'landed' in self.model.status:#\
+            #and not 'rowsCompleted' in self.model.status:
             self.tick(False) #tick without schedulling next tick to avoid delay before next piece appears
 
         if self.gameStatus == 'running' and scheduleNextTick:
             self.root.after(self.model.timer, self.tick)
 
     #end tick
+
+
 
     def button(self):
         #start new game
@@ -98,6 +110,7 @@ class TetrisController:
         elif self.gameStatus == 'running':
             self.view.button.configure(text='Continue')
             self.gameStatus = 'paused'
+            self.cancelNextTick = True
         #continue game
         elif self.gameStatus == 'paused':
             self.view.button.configure(text='Pause')

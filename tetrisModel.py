@@ -130,6 +130,13 @@ class TetrisModel:
         #do not tick if gameOver
         if self.gameOver:
             return self.status
+        #remove completed rows from previous tick from playarea
+        #the point is that the view has a chance to make an animation between the two ticks
+        #it's necessary, however, that the view.playarea has been updated, removing the complete rows even before
+        #they dissappear from model.playarea
+        if len(self.completeRows):
+            self.removeCompleteRows()
+            self.completeRows = []
 
         #add object if needed
         if self.addObject:
@@ -159,7 +166,6 @@ class TetrisModel:
             self.checkCompleteRows()
             if len(self.completeRows):
                 self.status.append('rowsCompleted')
-                self.removeCompleteRows()
 
             # check level
             level = int(self.removedRows / 30) + 1
@@ -267,4 +273,5 @@ class TetrisModel:
         self.score += len(self.completeRows)**2
         self.removedRows += len(self.completeRows)
         self.combos[len(self.completeRows)] += 1
+        self.completeRows = []
 
