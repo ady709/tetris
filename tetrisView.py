@@ -6,7 +6,6 @@ class TetrisView:
 
     def __init__(self,root,controller,model, blockSize, rows, columns, background):
         self.root = root
-        self.root.bind("<KeyPress>", self.keyInput)
         self.controller = controller
         self.model = model
         self.blockSize = blockSize
@@ -78,9 +77,7 @@ class TetrisView:
         self.button = tk.Button(root, text='Start', command=self.button, width=9)
         self.button.grid(row=21, column=startcolumn, sticky='n', columnspan=length)
 
-
-
-
+        self.root.bind("<KeyPress>", self.keyInput)
 
 
     def updateScore(self):
@@ -115,6 +112,7 @@ class TetrisView:
         for b in self.playedobjectblocks:
             self.can.delete(b)
         self.playedobjectblocks = []
+
 
     def drawObject1(self, obj, canv, blockSize, xadd=0, yadd=0):
         #clear current
@@ -196,13 +194,6 @@ class TetrisView:
             r['score'] = score
             self.highScoreLabels.append(r)
 
-
-
-
-    def animateCompleteRows(self, color):
-        for r in self.model.completeRows:
-            for block in self.viewarea[r]:
-                self.can.itemconfig(block, fill=color)
 
 
 

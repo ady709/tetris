@@ -26,6 +26,6 @@ controller = TetrisController(root, model, view)
 view.controller = controller
 
 view.addHighScores()
-
+root.update()
 root.mainloop()
 

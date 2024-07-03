@@ -124,6 +124,11 @@ class TetrisModel:
         self.nextObject = Object(shape=self.getRandomObject())
         self.status = []
 
+    def addObjectF(self):
+        self.object = Object(shape=self.nextObject.cmap, r=0, c=int(self.columns / 2))
+        self.nextObject = Object(shape=self.getRandomObject())
+        self.status.append('objectAdded')
+        self.addObject = False
 
     def tick(self):
         self.status = []
@@ -140,10 +145,7 @@ class TetrisModel:
 
         #add object if needed
         if self.addObject:
-            self.object = Object(shape=self.nextObject.cmap, r=0, c=int(self.columns / 2))
-            self.nextObject = Object(shape=self.getRandomObject())
-            self.status.append('objectAdded')
-            self.addObject = False
+            self.addObjectF()
             return self.status
 
 
@@ -153,7 +155,6 @@ class TetrisModel:
             if y is not None:
                 if self.object.r + y == self.rows - 1 or self.playArea[self.object.r + y + 1][self.object.c + x]:
                     self.landed = True
-                    self.addObject = True
 
         if self.landed:
             # copy object to playArea
@@ -161,6 +162,8 @@ class TetrisModel:
                 for x, block in enumerate(row):
                     if block:
                         self.playArea[self.object.r + y][self.object.c + x] = block
+            #add new piece
+            self.addObject = True
             self.status.append('landed')
             # check complete rows
             self.checkCompleteRows()
@@ -170,6 +173,7 @@ class TetrisModel:
             # check level
             level = int(self.removedRows / 30) + 1
             if level != self.level:
+                self.level = level
                 self.timer = self.beginTimer - (self.level - 1) * 50
                 if self.timer < 50: self.timer = 50
                 self.status.append('levelChanged')

@@ -1,11 +1,10 @@
 import csv
 import tkinter as tk
 import animation
-
 import os
 
 class TetrisController:
-    #TODO: avoid double schedulling of tick on pause/unpause
+    #TODO: avoid double schedulling of tick on pause/unpause, some solution is in place but still facing multishcedulling when starting the game
     def __init__(self, root, model, view):
         self.gameStatus = 'stopped'
         self.root = root
@@ -20,38 +19,18 @@ class TetrisController:
 
 
 
-
-            
-
-    def keyInput(self,event):
-        if self.gameStatus=='frozen':
-            return
-        if event.keysym == 'space':
-            self.button()
-        if self.gameStatus=='running':
-            if event.keysym == 'Down':
-                self.tick(scheduleNextTick = False)
-            elif event.keysym == 'Left':
-                self.model.goLeft()
-            elif event.keysym == 'Right':
-                self.model.goRight()
-            elif event.keysym == 'Up':
-                self.model.rotate()
-            #self.view.updateView()
-            self.view.drawObject1(self.model.object, self.view.can, self.view.blockSize)
-
-
-
     def tick(self, scheduleNextTick = True):
+
+        if self.gameStatus == 'suspended':
+            self.gameStatus = 'frozen'
         if not self.gameStatus == 'running' or self.cancelNextTick:
             self.cancelNextTick = False
             return
 
         self.model.tick()
         #draw object
-        if not 'landed' in self.model.status:#\
-                #and not 'rowsCompleted' in self.model.status:
-	        self.view.drawObject1(self.model.object, self.view.can, self.view.blockSize)
+        #if not 'landed' in self.model.status:
+        self.view.drawObject1(self.model.object, self.view.can, self.view.blockSize)
         #draw playarea when landed
         if 'landed' in self.model.status:
             self.view.drawPlayArea()
@@ -88,9 +67,29 @@ class TetrisController:
 
 
 
+    def keyInput(self,event):
+        if self.gameStatus in ('suspended','frozen'):
+            return
+        if event.keysym == 'space':
+            self.button()
+        if self.gameStatus=='running':
+            if event.keysym == 'Down':
+                self.tick(scheduleNextTick=False) #TODO this seems to be causing multischedulling :(
+            elif event.keysym == 'Left':
+                self.model.goLeft()
+            elif event.keysym == 'Right':
+                self.model.goRight()
+            elif event.keysym == 'Up':
+                self.model.rotate()
+            if not self.model.landed:
+                self.view.drawObject1(self.model.object, self.view.can, self.view.blockSize)
+            else:
+                self.view.clearPlayAreaObject()
+
     def button(self):
         #start new game
         if self.gameStatus=='stopped':
+            self.gameStatus = 'running'
             try:
                 seedPos = int(self.view.selectedScorePos.cget('text'))-1 \
                     if isinstance(self.view.selectedScorePos, tk.Label)\
@@ -104,7 +103,6 @@ class TetrisController:
             self.view.updateScore()
             self.view.updateLevel()
             self.view.button.configure(text='Pause')
-            self.gameStatus = 'running'
             self.tick()
         #pause game
         elif self.gameStatus == 'running':
