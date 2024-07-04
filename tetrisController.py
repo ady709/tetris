@@ -10,28 +10,24 @@ class TetrisController:
         self.root = root
         self.model = model
         self.view = view
-        self.root.after(self.model.timer, self.tick)
+        #self.root.after(self.model.timer, self.tick)
         #cwd = os.getcwd()
         self.cwd=os.path.dirname(os.path.realpath(__file__))
         self.loadScore()
         self.randomSeed = None
-        self.cancelNextTick = False
+        #self.cancelNextTick = False
+        self.nextTickID = None
 
 
 
     def tick(self, scheduleNextTick = True):
 
-        if not self.gameStatus in ('running','suspended') or self.cancelNextTick:
-            self.cancelNextTick = False
-            return
-
         if self.gameStatus == 'suspended':
             self.gameStatus = 'frozen'
-            print('freeze')
+            self.root.after_cancel(self.nextTickID)
 
         self.model.tick()
         #draw object
-        #if not 'landed' in self.model.status:
         self.view.drawObject1(self.model.object, self.view.can, self.view.blockSize)
         #draw playarea when landed
         if 'landed' in self.model.status:
@@ -64,7 +60,7 @@ class TetrisController:
             self.tick(False)
 
         if self.gameStatus == 'running' and scheduleNextTick:
-            self.root.after(self.model.timer, self.tick)
+            self.nextTickID = self.root.after(self.model.timer, self.tick)
 
     #end tick
 
@@ -78,7 +74,6 @@ class TetrisController:
         if self.gameStatus=='running':
             if event.keysym == 'Down':
                 self.tick(False)
-                #self.root.after_idle(self.tick,False) #after_idle prevents weird behavior
             elif event.keysym == 'Left':
                 self.model.goLeft()
             elif event.keysym == 'Right':
@@ -108,17 +103,17 @@ class TetrisController:
             self.view.updateScore()
             self.view.updateLevel()
             self.view.button.configure(text='Pause')
-            self.root.after_idle(self.tick)
+            self.nextTickID = self.root.after_idle(self.tick, True)
         #pause game
         elif self.gameStatus == 'running':
             self.view.button.configure(text='Continue')
             self.gameStatus = 'paused'
-            self.cancelNextTick = True
+            self.root.after_cancel(self.nextTickID)
         #continue game
         elif self.gameStatus == 'paused':
             self.view.button.configure(text='Pause')
             self.gameStatus = 'running'
-            self.tick()
+            self.tick(True)
 
     def loadScore(self):
         try:

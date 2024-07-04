@@ -7,7 +7,6 @@ class Animation:
         self.completeRows = [item for item in self.parent.model.completeRows]
 
         self.parent.gameStatus = 'suspended'
-        print('suspend')
         self.nextStep()
         #self.parent.root.after(20, self.nextStep)
 
@@ -20,14 +19,9 @@ class Animation:
         if self.animationStep == self.lastStep:
             self.parent.model.removeCompleteRows()
             self.parent.view.drawPlayArea()
-            if self.parent.gameStatus == 'suspended':
-                print('unsuspend')
-                self.parent.gameStatus = 'running'
-            if self.parent.gameStatus == 'frozen':
-                self.parent.gameStatus = 'running'
-                print('unfreeze')
-                self.parent.root.after_idle(self.parent.tick)
+            self.parent.gameStatus = 'running'
+            self.parent.tick(True)
             return
 
         self.animationStep += 1
-        self.parent.root.after(10, self.nextStep)
+        self.parent.root.after(20, self.nextStep)
