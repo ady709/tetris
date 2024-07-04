@@ -123,6 +123,7 @@ class TetrisModel:
         print(f'Starting with seed {self.randomSeed}')
         self.nextObject = Object(shape=self.getRandomObject())
         self.status = []
+        self.object = None
 
     def addObjectF(self):
         self.object = Object(shape=self.nextObject.cmap, r=0, c=int(self.columns / 2))
@@ -142,6 +143,7 @@ class TetrisModel:
         if len(self.completeRows):
             self.removeCompleteRows()
             self.completeRows = []
+            self.status.append('scoreChanged')
 
         #add object if needed
         if self.addObject:

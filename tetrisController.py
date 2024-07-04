@@ -21,11 +21,13 @@ class TetrisController:
 
     def tick(self, scheduleNextTick = True):
 
-        if self.gameStatus == 'suspended':
-            self.gameStatus = 'frozen'
-        if not self.gameStatus == 'running' or self.cancelNextTick:
+        if not self.gameStatus in ('running','suspended') or self.cancelNextTick:
             self.cancelNextTick = False
             return
+
+        if self.gameStatus == 'suspended':
+            self.gameStatus = 'frozen'
+            print('freeze')
 
         self.model.tick()
         #draw object
@@ -39,7 +41,7 @@ class TetrisController:
             if 'rowsCompleted' in self.model.status:
                 self.animation = animation.Animation(self)
         #update infos when needed
-        if 'rowsCompleted' in self.model.status:
+        if 'scoreChanged' in self.model.status:
             self.view.updateScore()
         if 'levelChanged' in self.model.status:
             self.view.updateLevel()
@@ -51,14 +53,15 @@ class TetrisController:
             self.view.button.configure(text='Start')
             self.checkHighScore()
 
+        #draw next piece
         if 'objectAdded' in self.model.status:
             self.view.drawObject1(self.model.nextObject, self.view.canNext, self.view.canNextBlockSize,
                        xadd=int(self.view.canNextW / self.view.canNextBlockSize / 2) - int(self.model.nextObject.width / 2),
                        yadd=int(self.view.canNextH / self.view.canNextBlockSize / 2) - int(self.model.nextObject.height / 2))
 
-        if 'landed' in self.model.status:#\
-            #and not 'rowsCompleted' in self.model.status:
-            self.tick(False) #tick without schedulling next tick to avoid delay before next piece appears
+        # tick without scheduling next tick to avoid delay before next piece appears
+        if 'landed' in self.model.status:
+            self.tick(False)
 
         if self.gameStatus == 'running' and scheduleNextTick:
             self.root.after(self.model.timer, self.tick)
@@ -74,7 +77,8 @@ class TetrisController:
             self.button()
         if self.gameStatus=='running':
             if event.keysym == 'Down':
-                self.tick(scheduleNextTick=False) #TODO this seems to be causing multischedulling :(
+                self.tick(False)
+                #self.root.after_idle(self.tick,False) #after_idle prevents weird behavior
             elif event.keysym == 'Left':
                 self.model.goLeft()
             elif event.keysym == 'Right':
@@ -82,7 +86,8 @@ class TetrisController:
             elif event.keysym == 'Up':
                 self.model.rotate()
             if not self.model.landed:
-                self.view.drawObject1(self.model.object, self.view.can, self.view.blockSize)
+                if self.model.object is not None:
+                    self.view.drawObject1(self.model.object, self.view.can, self.view.blockSize)
             else:
                 self.view.clearPlayAreaObject()
 
@@ -103,7 +108,7 @@ class TetrisController:
             self.view.updateScore()
             self.view.updateLevel()
             self.view.button.configure(text='Pause')
-            self.tick()
+            self.root.after_idle(self.tick)
         #pause game
         elif self.gameStatus == 'running':
             self.view.button.configure(text='Continue')
