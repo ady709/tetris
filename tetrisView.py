@@ -11,6 +11,8 @@ class TetrisView:
         self.blockSize = blockSize
         self.canH = blockSize*rows
         self.canW = blockSize*columns
+        self.rows = rows
+        self.columns = columns
         self.background = background
         self.combos = {1:'Singles', 2:'Doubles', 3:'Tripples', 4:'Tetris'}
         self.selectedScorePos = None
@@ -39,7 +41,7 @@ class TetrisView:
         self.frame.grid(row=1, column=0, columnspan=4, rowspan=30)
         self.can = tk.Canvas(self.frame, width=self.canW + 1, height=self.canH + 1, background='darkgrey',
                              borderwidth=0, relief='ridge')
-        self.can.config(highlightthickness=0)
+        self.can.config(highlightthickness=0) # this is probably what is needed to avoid grey border
         self.can.pack()
         self.can.config(scrollregion=(0, 0, self.canW, self.canH))
 
