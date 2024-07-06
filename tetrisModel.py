@@ -147,6 +147,7 @@ class TetrisModel:
         #add object if needed
         if self.addObject:
             self.addObjectF()
+            self.landed = False
             return
 
 
